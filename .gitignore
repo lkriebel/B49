@@ -1,0 +1,32 @@
+# Compilation/optimization stuff
+__pycache__/
+*.py[codz]
+*$py.class
+
+*.so
+
+# dist/packaging
+.Python
+build/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+*.manifest
+*.spec
+
+pip-log.txt
+
+# venv stuff
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Secrets
+.env
+firebase-credentials.json
