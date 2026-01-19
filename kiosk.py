@@ -76,10 +76,6 @@ class KioskTimerApp:
         # Initialize Firebase
         self.init_firebase()
 
-        # Initialize Discord environment stuff
-        # self.discord_token = os.getenv('DISCORD_BOT_TOKEN')
-        # self.channel_id = os.getenv('DISCORD_STATUS_CHANNEL_ID')
-        
         # Start update loop
         self.update_display()
     
@@ -125,32 +121,43 @@ class KioskTimerApp:
         """Start 1-hour countdown timer"""
         self.end_time = datetime.fromtimestamp(timestamp) + timedelta(hours=1)
         self.is_free = False
-        self.set_discord_channel_status('BUSY')
+        self.set_discord_channel_status('🟧 BUSY')
     
     def set_free(self):
         """Set display to FREE"""
         self.end_time = None
         self.is_free = True
-        self.set_discord_channel_status('OPEN')
+        self.set_discord_channel_status('🟩 OPEN')
     
     def manual_free(self):
         """Manual button to set status to FREE"""
         self.set_free()
-        self.set_discord_channel_status('OPEN')
+        self.set_discord_channel_status('🟩 OPEN')
 
     def set_discord_channel_status(self, status: str):
         """Set status for channel in .env to given string"""
-        self.discord_token = os.getenv('DISCORD_BOT_TOKEN')
-        self.channel_id = os.getenv('DISCORD_STATUS_CHANNEL_ID')
+        token = os.getenv('DISCORD_BOT_TOKEN')
+        channel_id = os.getenv('DISCORD_STATUS_CHANNEL_ID')
         headers = {
-                "Authorization": f"Bot {self.discord_token}",
-                # "User-Agent": "DiscordBot",
+                "Authorization": f"Bot {token}",
         }
-        url = f'https://discord.com/api/v10/channels/{self.channel_id}'
-        resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
-        print(resp)
-        print(url)
-    
+        url = f'https://discord.com/api/v10/channels/{channel_id}'
+        channel_resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
+        if channel_resp.status_code != 200:
+            print("GET on channel failed")
+            return
+        try:
+            channel_resp_json = channel_resp.json()
+            # manual override for channel name
+            if 'FOR' in channel_resp_json['name'].upper():
+                return
+        except requests.exceptions.JSONDecodeError:
+            print("Channel lookup did not return valid JSON")
+            return
+        patch_resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
+        if patch_resp.status_code != 200:
+            print("Updating channel failed")
+
     def update_display(self):
         """Update the display every second"""
         now = datetime.now()
@@ -164,7 +171,7 @@ class KioskTimerApp:
             self.end_time_label.config(text=str(open_time))
             if not self.closed_for_day:
                 self.closed_for_day = True
-                self.set_discord_channel_status('CLOSED')
+                self.set_discord_channel_status('🔴 CLOSED')
         if close_time <= now_time or now_time <= open_time:
             # Not Saturday or Sunday
             if now.weekday() < 4:
@@ -174,7 +181,7 @@ class KioskTimerApp:
             self.end_time_label.config(text=str(open_time))
             if not self.closed_for_day:
                 self.closed_for_day = True
-                self.set_discord_channel_status('CLOSED')
+                self.set_discord_channel_status('🔴 CLOSED')
         elif self.is_free or self.end_time is None:
             self.status_label.config(text="FREE", style='Free.Timer.TLabel')
             self.end_time_label.config(text="")
