@@ -13,6 +13,7 @@ from firebase_admin import credentials, db
 import threading
 import dotenv
 import os
+import requests
 
 dotenv.load_dotenv()
 
@@ -89,6 +90,10 @@ class KioskTimerApp:
         
         # Initialize Firebase
         self.init_firebase()
+
+        # Initialize Discord environment stuff
+        self.discord_token = os.getenv('DISCORD_BOT_TOKEN')
+        self.channel_id = os.getenv('DISCORD_STATUS_CHANNEL_ID')
         
         # Start update loop
         self.update_display()
@@ -137,18 +142,30 @@ class KioskTimerApp:
         # self.end_time = datetime.now() + timedelta(hours=1)
         self.end_time = datetime.fromtimestamp(timestamp) + timedelta(hours=1)
         self.is_free = False
-        print(f"Timer started. End time: {self.end_time.strftime('%I:%M %p')}")
+        self.set_discord_channel_status('BUSY')
+        # print(f"Timer started. End time: {self.end_time.strftime('%I:%M %p')}")
     
     def set_free(self):
         """Set display to FREE"""
         self.end_time = None
         self.is_free = True
-        print("Status set to FREE")
+        self.set_discord_channel_status('OPEN')
+        # print("Status set to FREE")
     
     def manual_free(self):
         """Manual button to set status to FREE"""
         self.set_free()
-        print("Manual FREE button pressed")
+        self.set_discord_channel_status('OPEN')
+        # print("Manual FREE button pressed")
+
+    def set_discord_channel_status(self, status: str):
+        """Set status for channel in .env to given string"""
+        headers = {
+                "Authorization": f"Bot {self.discord_token}",
+                "User-Agent": "DiscordBot",
+        }
+        url = f'https://discord.com/api/channels/{self.channel_id}'
+        requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
     
     def update_display(self):
         """Update the display every second"""
@@ -162,7 +179,7 @@ class KioskTimerApp:
             self.end_time_label.config(text=str(open_time))
             if not self.closed_for_day:
                 self.closed_for_day = True
-                # TODO: send discord API to update to closed
+                self.set_discord_channel_status('CLOSED')
         elif self.is_free or self.end_time is None:
             # Display FREE
             # self.status_label.config(text="FREE", fg='#00FF00', font=('Arial', 120, 'bold'))

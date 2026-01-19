@@ -1,4 +1,10 @@
 # Setting up
+## Discord
+1. Create a application in the dev portal
+2. Create a bot
+3. Get the token for the bot
+4. Put bot token in .env as `DISCORD_BOT_TOKEN`
+5. Put the channel you want to make the status channel in .env as `DISCORD_STATUS_CHANNEL_ID`
 ## Firebase
 1. Create a Firebase project
 2. In the firebase project, create a Realtime Database
