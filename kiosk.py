@@ -7,11 +7,10 @@ Semi Vibe-coded with Claude & Gemini (sorry)
 
 import tkinter as tk
 from tkinter import ttk
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import firebase_admin
 from firebase_admin import credentials, db
 import threading
-import time
 import dotenv
 import os
 
@@ -30,6 +29,7 @@ class KioskTimerApp:
         # Timer state
         self.end_time = None
         self.is_free = True
+        self.closed_for_day = False
 
         # Style
         self.style = ttk.Style()
@@ -149,23 +149,27 @@ class KioskTimerApp:
         """Manual button to set status to FREE"""
         self.set_free()
         print("Manual FREE button pressed")
-        
-        # Optionally write to Firebase to sync with other systems
-        # try:
-            # self.status_ref.set({
-                # 'event': 'manual_free',
-                # 'timestamp': datetime.now()
-            # })
-        # except Exception as e:
-            # print(f"Could not update Firebase: {e}")
     
     def update_display(self):
         """Update the display every second"""
-        if self.is_free or self.end_time is None:
+        now = datetime.now()
+        now_time = now.time()
+        open_time = time(10,00)
+        close_time = time(17,20)
+
+        if close_time <= now_time or now_time <= open_time:
+            self.status_label.config(text="CLOSED UNTIL TOMORROW", style='Busy.Timer.TLabel')
+            self.end_time_label.config(text=str(open_time))
+            if not self.closed_for_day:
+                self.closed_for_day = True
+                # TODO: send discord API to update to closed
+        elif self.is_free or self.end_time is None:
             # Display FREE
             # self.status_label.config(text="FREE", fg='#00FF00', font=('Arial', 120, 'bold'))
             self.status_label.config(text="FREE", style='Free.Timer.TLabel')
             self.end_time_label.config(text="")
+            if self.closed_for_day:
+                self.closed_for_day = False
         else:
             # Calculate remaining time
             now = datetime.now()
@@ -190,6 +194,8 @@ class KioskTimerApp:
                 self.end_time_label.config(
                     text=f"Available at {self.end_time.strftime('%I:%M %p')}"
                 )
+            if self.closed_for_day:
+                self.closed_for_day = False
         
         # Schedule next update
         self.root.after(1000, self.update_display)
