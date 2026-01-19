@@ -117,7 +117,6 @@ class KioskTimerApp:
             print("Firebase initialized successfully")
         except Exception as e:
             print(f"Error initializing Firebase: {e}")
-            # self.status_label.config(text="ERROR", fg='red')
             self.status_label.config(text="ERROR", style='Error.Timer.TLabel')
     
     def on_status_change(self, event):
@@ -139,24 +138,20 @@ class KioskTimerApp:
     
     def start_timer(self, timestamp):
         """Start 1-hour countdown timer"""
-        # self.end_time = datetime.now() + timedelta(hours=1)
         self.end_time = datetime.fromtimestamp(timestamp) + timedelta(hours=1)
         self.is_free = False
         self.set_discord_channel_status('BUSY')
-        # print(f"Timer started. End time: {self.end_time.strftime('%I:%M %p')}")
     
     def set_free(self):
         """Set display to FREE"""
         self.end_time = None
         self.is_free = True
         self.set_discord_channel_status('OPEN')
-        # print("Status set to FREE")
     
     def manual_free(self):
         """Manual button to set status to FREE"""
         self.set_free()
         self.set_discord_channel_status('OPEN')
-        # print("Manual FREE button pressed")
 
     def set_discord_channel_status(self, status: str):
         """Set status for channel in .env to given string"""
@@ -174,15 +169,24 @@ class KioskTimerApp:
         open_time = time(10,00)
         close_time = time(17,20)
 
+        # Handle weekends where 5 and 6 are Saturday and Sunday
+        if now.weekday() > 5:
+            self.status_label.config(text="CLOSED UNTIL MONDAY", style='Busy.Timer.TLabel')
+            self.end_time_label.config(text=str(open_time))
+            if not self.closed_for_day:
+                self.closed_for_day = True
+                self.set_discord_channel_status('CLOSED')
         if close_time <= now_time or now_time <= open_time:
-            self.status_label.config(text="CLOSED UNTIL TOMORROW", style='Busy.Timer.TLabel')
+            # Not Saturday or Sunday
+            if now.weekday() < 4:
+                self.status_label.config(text="CLOSED UNTIL TOMORROW", style='Busy.Timer.TLabel')
+            else:
+                self.status_label.config(text="CLOSED UNTIL MONDAY", style='Busy.Timer.TLabel')
             self.end_time_label.config(text=str(open_time))
             if not self.closed_for_day:
                 self.closed_for_day = True
                 self.set_discord_channel_status('CLOSED')
         elif self.is_free or self.end_time is None:
-            # Display FREE
-            # self.status_label.config(text="FREE", fg='#00FF00', font=('Arial', 120, 'bold'))
             self.status_label.config(text="FREE", style='Free.Timer.TLabel')
             self.end_time_label.config(text="")
             if self.closed_for_day:
@@ -203,8 +207,6 @@ class KioskTimerApp:
                 time_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
                 self.status_label.config(
                     text=time_str, 
-                    # fg='#FF6600',
-                    # font=('Arial', 100, 'bold')
                     style='Busy.Timer.TLabel'
                 )
                 
