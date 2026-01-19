@@ -54,9 +54,6 @@ class KioskTimerApp:
         self.status_label = ttk.Label(
             self.status_frame, 
             text="FREE", 
-            # font=('Arial', 120, 'bold'),
-            # fg='#00FF00',
-            # bg='black'
             style='Free.Timer.TLabel',
         )
         self.status_label.pack()
@@ -64,9 +61,6 @@ class KioskTimerApp:
         self.end_time_label = ttk.Label(
             self.status_frame, 
             text="",
-            # font=('Arial', 30),
-            # fg='#CCCCCC',
-            # bg='black'
             style='EndTime.TLabel',
         )
         self.end_time_label.pack(pady=20)
@@ -75,16 +69,7 @@ class KioskTimerApp:
         self.free_button = ttk.Button(
             root,
             text="SET FREE",
-            # font=('Arial', 20, 'bold'),
-            # bg='#FF3333',
-            # fg='white',
-            # activebackground='#CC0000',
-            # activeforeground='white',
             command=self.manual_free,
-            # padx=30,
-            # pady=15,
-            # relief=tk.RAISED,
-            # bd=5
         )
         self.free_button.pack(pady=30)
         
@@ -92,8 +77,8 @@ class KioskTimerApp:
         self.init_firebase()
 
         # Initialize Discord environment stuff
-        self.discord_token = os.getenv('DISCORD_BOT_TOKEN')
-        self.channel_id = os.getenv('DISCORD_STATUS_CHANNEL_ID')
+        # self.discord_token = os.getenv('DISCORD_BOT_TOKEN')
+        # self.channel_id = os.getenv('DISCORD_STATUS_CHANNEL_ID')
         
         # Start update loop
         self.update_display()
@@ -155,12 +140,16 @@ class KioskTimerApp:
 
     def set_discord_channel_status(self, status: str):
         """Set status for channel in .env to given string"""
+        self.discord_token = os.getenv('DISCORD_BOT_TOKEN')
+        self.channel_id = os.getenv('DISCORD_STATUS_CHANNEL_ID')
         headers = {
                 "Authorization": f"Bot {self.discord_token}",
-                "User-Agent": "DiscordBot",
+                # "User-Agent": "DiscordBot",
         }
-        url = f'https://discord.com/api/channels/{self.channel_id}'
-        requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
+        url = f'https://discord.com/api/v10/channels/{self.channel_id}'
+        resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
+        print(resp)
+        print(url)
     
     def update_display(self):
         """Update the display every second"""

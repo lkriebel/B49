@@ -5,6 +5,7 @@
 3. Get the token for the bot
 4. Put bot token in .env as `DISCORD_BOT_TOKEN`
 5. Put the channel you want to make the status channel in .env as `DISCORD_STATUS_CHANNEL_ID`
+  - Note the bot needs "View Channel", "Manage Channel", and for some reason "Connect" permissions to edit the channel's name.
 ## Firebase
 1. Create a Firebase project
 2. In the firebase project, create a Realtime Database
