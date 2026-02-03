@@ -36,21 +36,28 @@ class KioskTimerApp:
         self.style = ttk.Style()
         # self.style.theme_use('alt')
         self.style.configure('TLabel', foreground='white', background='black')
-        self.style.configure('Free.Timer.TLabel', foreground='#00FF00', font=('Arial', 120, 'bold'))
-        self.style.configure('Busy.Timer.TLabel', foreground='#FF6600', font=('Arial', 120, 'bold'))
-        self.style.configure('Error.Timer.TLabel', foreground='red', font=('Arial', 120, 'bold'))
-        self.style.configure('EndTime.TLabel', font=('Arial', 40, 'bold'))
+        self.style.configure('Free.Timer.TLabel', foreground='#00FF00', font=('Arial', 180, 'bold'))
+        self.style.configure('Header.TLabel', foreground='#FFFFFF', font=('Arial', 80, 'bold'))
+        self.style.configure('Busy.Timer.TLabel', foreground='#FF6600', font=('Arial', 180, 'bold'))
+        self.style.configure('Error.Timer.TLabel', foreground='red', font=('Arial', 180, 'bold'))
+        self.style.configure('EndTime.TLabel', font=('Arial', 100, 'bold'))
         self.style.map('TButton',
                        foreground=[('active', 'white')],
                        background=[('active', '#CC0000')],
         )
-        self.style.configure('TButton', foreground='white', background='#FF3333', padding='30 15 30 15', relief='raised', font=('Arial', 20, 'bold'), borderwidth=5)
+        self.style.configure('TButton', foreground='white', background='#FF3333', padding='5 5 5 5', relief='raised', font=('Arial', 5, 'bold'), borderwidth=5)
         self.style.configure('TFrame', background='black')
 
         # UI Elements
         self.status_frame = ttk.Frame(self.root)
         self.status_frame.pack(expand=True)
 
+        self.header_label = ttk.Label(
+                self.status_frame,
+                text="B49 is",
+                style="Header.TLabel",
+        )
+        self.header_label.pack()
         self.status_label = ttk.Label(
             self.status_frame, 
             text="FREE", 
@@ -71,7 +78,7 @@ class KioskTimerApp:
             text="SET FREE",
             command=self.manual_free,
         )
-        self.free_button.pack(pady=30)
+        self.free_button.pack(pady=10)
         
         # Initialize Firebase
         self.init_firebase()
@@ -142,9 +149,10 @@ class KioskTimerApp:
                 "Authorization": f"Bot {token}",
         }
         url = f'https://discord.com/api/v10/channels/{channel_id}'
-        channel_resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
+        channel_resp = requests.get(url, headers=headers)
         if channel_resp.status_code != 200:
             print("GET on channel failed")
+            print(channel_resp.json())
             return
         try:
             channel_resp_json = channel_resp.json()
@@ -157,6 +165,7 @@ class KioskTimerApp:
         patch_resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
         if patch_resp.status_code != 200:
             print("Updating channel failed")
+            print(patch_resp.json())
 
     def update_display(self):
         """Update the display every second"""
