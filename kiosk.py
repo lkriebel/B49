@@ -31,21 +31,38 @@ class KioskTimerApp:
         self.end_time = None
         self.is_free = True
         self.closed_for_day = False
+        self.manually_closed = False
 
         # Style
         self.style = ttk.Style()
         # self.style.theme_use('alt')
         self.style.configure('TLabel', foreground='white', background='black')
-        self.style.configure('Free.Timer.TLabel', foreground='#00FF00', font=('Arial', 180, 'bold'))
-        self.style.configure('Header.TLabel', foreground='#FFFFFF', font=('Arial', 80, 'bold'))
-        self.style.configure('Busy.Timer.TLabel', foreground='#FF6600', font=('Arial', 180, 'bold'))
-        self.style.configure('Error.Timer.TLabel', foreground='red', font=('Arial', 180, 'bold'))
-        self.style.configure('EndTime.TLabel', font=('Arial', 100, 'bold'))
-        self.style.map('TButton',
+        self.style.configure('Free.Timer.TLabel', foreground='#00FF00', font=('Arial', 180, 'bold'), justify=tk.CENTER)
+        self.style.configure('Header.TLabel', foreground='#FFFFFF', font=('Arial', 80, 'bold'), justify=tk.CENTER)
+        self.style.configure('Busy.Timer.TLabel', foreground='#FF6600', font=('Arial', 180, 'bold'), justify=tk.CENTER)
+        self.style.configure('Error.Timer.TLabel', foreground='red', font=('Arial', 180, 'bold'), justify=tk.CENTER)
+        self.style.configure('Closed.Timer.TLabel', foreground='red', font=('Arial', 180, 'bold'), justify=tk.CENTER)
+        self.style.configure('EndTime.TLabel', font=('Arial', 100, 'bold'), justify=tk.CENTER)
+        self.style.map('Free.TButton',
+                       foreground=[('active', 'white')],
+                       background=[('active', '#00CC00')],
+        )
+        self.style.map('Busy.TButton',
                        foreground=[('active', 'white')],
                        background=[('active', '#CC0000')],
         )
-        self.style.configure('TButton', foreground='white', background='#FF3333', padding='5 5 5 5', relief='raised', font=('Arial', 5, 'bold'), borderwidth=5)
+        self.style.map('Close.TButton',
+                       foreground=[('active', 'white')],
+                       background=[('active', '#CC0000')],
+        )
+        self.style.map('Open.TButton',
+                       foreground=[('active', 'white')],
+                       background=[('active', '#00CC00')],
+        )
+        self.style.configure('Free.TButton', foreground='white', background='#66FF33', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
+        self.style.configure('Busy.TButton', foreground='white', background='#FFCC33', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
+        self.style.configure('Close.TButton', foreground='white', background='#FF3333', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
+        self.style.configure('Open.TButton', foreground='white', background='#66FF33', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
         self.style.configure('TFrame', background='black')
 
         # UI Elements
@@ -75,13 +92,33 @@ class KioskTimerApp:
         # Manual Free button
         self.free_button = ttk.Button(
             root,
-            text="SET FREE",
+            text="FREE",
             command=self.manual_free,
+            style='Busy.TButton',
         )
-        self.free_button.pack(pady=10)
+        self.free_button.pack(padx=10, pady=50, side=tk.LEFT, expand=True)
+        # self.free_button.grid(column=0, row=0)
         
+        self.busy_button = ttk.Button(
+            root,
+            text="BUSY",
+            command=self.manual_busy,
+            style='Busy.TButton',
+        )
+        self.busy_button.pack(padx=10, pady=50, side=tk.LEFT, expand=True)
+        # self.busy_button.grid(column=0, row=1)
+
+        self.closed_toggle_button = ttk.Button(
+            root,
+            text="CLOSE",
+            command=self.toggle_closed,
+            style='Close.TButton',
+        )
+        self.closed_toggle_button.place(relx=1, rely=1, anchor=tk.SE)
+
+
         # Initialize Firebase
-        self.init_firebase()
+        # self.init_firebase()
 
         # Start update loop
         self.update_display()
@@ -139,7 +176,17 @@ class KioskTimerApp:
     def manual_free(self):
         """Manual button to set status to FREE"""
         self.set_free()
-        self.set_discord_channel_status('🟩 OPEN')
+
+    def manual_busy(self):
+        self.start_timer(datetime.now().timestamp())
+
+    def toggle_closed(self):
+        if self.manually_closed:
+            self.closed_toggle_button.config(text='CLOSE', style='Close.TButton')
+        else:
+            self.closed_toggle_button.config(text='OPEN', style='Open.TButton')
+        self.manually_closed = not self.manually_closed
+
 
     def set_discord_channel_status(self, status: str):
         """Set status for channel in .env to given string"""
@@ -174,19 +221,25 @@ class KioskTimerApp:
         open_time = time(10,00)
         close_time = time(17,20)
 
+
+        if self.manually_closed:
+            self.status_label.config(text="CLOSED", style='Closed.Timer.TLabel')
+            if not self.closed_for_day:
+                self.closed_for_day = True
+                self.set_discord_channel_status('🔴 CLOSED')
         # Handle weekends where 5 and 6 are Saturday and Sunday
-        if now.weekday() > 5:
-            self.status_label.config(text="CLOSED UNTIL MONDAY", style='Busy.Timer.TLabel')
+        elif now.weekday() > 5:
+            self.status_label.config(text="CLOSED UNTIL MONDAY", style='Closed.Timer.TLabel')
             self.end_time_label.config(text=str(open_time))
             if not self.closed_for_day:
                 self.closed_for_day = True
                 self.set_discord_channel_status('🔴 CLOSED')
-        if close_time <= now_time or now_time <= open_time:
+        elif close_time <= now_time or now_time <= open_time:
             # Not Saturday or Sunday
             if now.weekday() < 4:
-                self.status_label.config(text="CLOSED UNTIL TOMORROW", style='Busy.Timer.TLabel')
+                self.status_label.config(text="CLOSED UNTIL TOMORROW", style='Closed.Timer.TLabel')
             else:
-                self.status_label.config(text="CLOSED UNTIL MONDAY", style='Busy.Timer.TLabel')
+                self.status_label.config(text="CLOSED UNTIL MONDAY", style='Closed.Timer.TLabel')
             self.end_time_label.config(text=str(open_time))
             if not self.closed_for_day:
                 self.closed_for_day = True
