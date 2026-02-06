@@ -61,8 +61,8 @@ class KioskTimerApp:
         )
         self.style.configure('Free.TButton', foreground='white', background='#22AA22', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
         self.style.configure('Busy.TButton', foreground='white', background='#DD8822', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
-        self.style.configure('Close.TButton', foreground='white', background='#FF3333', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
-        self.style.configure('Open.TButton', foreground='white', background='#66FF33', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
+        self.style.configure('Close.TButton', foreground='white', background='#FF3333', padding='10 10 10 10', relief='raised', font=('Arial', 16, 'bold'), borderwidth=5)
+        self.style.configure('Open.TButton', foreground='white', background='#66FF33', padding='10 10 10 10', relief='raised', font=('Arial', 16, 'bold'), borderwidth=5)
         self.style.configure('TFrame', background='black')
 
         # UI Elements
@@ -110,7 +110,7 @@ class KioskTimerApp:
 
         self.closed_toggle_button = ttk.Button(
             root,
-            text="CLOSE",
+            text="CLOSE ROOM",
             command=self.toggle_closed,
             style='Close.TButton',
         )
@@ -182,9 +182,9 @@ class KioskTimerApp:
 
     def toggle_closed(self):
         if self.manually_closed:
-            self.closed_toggle_button.config(text='CLOSE', style='Close.TButton')
+            self.closed_toggle_button.config(text='CLOSE ROOM', style='Close.TButton')
         else:
-            self.closed_toggle_button.config(text='OPEN', style='Open.TButton')
+            self.closed_toggle_button.config(text='OPEN ROOM', style='Open.TButton')
         self.manually_closed = not self.manually_closed
 
 
