@@ -59,8 +59,8 @@ class KioskTimerApp:
                        foreground=[('active', 'white')],
                        background=[('active', '#00CC00')],
         )
-        self.style.configure('Free.TButton', foreground='white', background='#66FF33', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
-        self.style.configure('Busy.TButton', foreground='white', background='#FFCC33', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
+        self.style.configure('Free.TButton', foreground='white', background='#22AA22', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
+        self.style.configure('Busy.TButton', foreground='white', background='#DD8822', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
         self.style.configure('Close.TButton', foreground='white', background='#FF3333', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
         self.style.configure('Open.TButton', foreground='white', background='#66FF33', padding='10 10 10 10', relief='raised', font=('Arial', 30, 'bold'), borderwidth=5)
         self.style.configure('TFrame', background='black')
@@ -94,7 +94,7 @@ class KioskTimerApp:
             root,
             text="FREE",
             command=self.manual_free,
-            style='Busy.TButton',
+            style='Free.TButton',
         )
         self.free_button.pack(padx=10, pady=50, side=tk.LEFT, expand=True)
         # self.free_button.grid(column=0, row=0)
