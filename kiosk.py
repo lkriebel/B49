@@ -165,13 +165,17 @@ class KioskTimerApp:
         """Start 1-hour countdown timer"""
         self.end_time = datetime.fromtimestamp(timestamp) + timedelta(hours=1)
         self.is_free = False
-        self.set_discord_channel_status('🟧 BUSY')
+        if not self.updating:
+            self.updating = True
+            threading.thread(target=self.set_discord_channel_status, args=['🟧 BUSY']).start()
     
     def set_free(self):
         """Set display to FREE"""
         self.end_time = None
         self.is_free = True
-        self.set_discord_channel_status('🟩 OPEN')
+        if not self.updating:
+            self.updating = True
+            threading.thread(target=self.set_discord_channel_status, args=['🟩 OPEN']).start()
     
     def manual_free(self):
         """Manual button to set status to FREE"""
@@ -210,9 +214,18 @@ class KioskTimerApp:
             print("Channel lookup did not return valid JSON")
             return
         patch_resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
+        if patch_resp.status_code == 429 and "retry_after" in patch_resp.json():
+            if 'retry_after' in patch_resp.json():
+                # wait for 1 second more than wait time for safety since
+                # delays are not a big deal besides race conditions
+                wait_time_secs = patch_resp.json()['retry_after'] + 1
+                # wait_time_secs = (wait_time_ms / 1000) + 1
+                time.sleep(wait_time_secs)
+                patch_resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
         if patch_resp.status_code != 200:
             print("Updating channel failed")
             print(patch_resp.json())
+        self.updating = False
 
     def update_display(self):
         """Update the display every second"""
@@ -226,24 +239,30 @@ class KioskTimerApp:
             self.status_label.config(text="CLOSED", style='Closed.Timer.TLabel')
             if not self.closed_for_day:
                 self.closed_for_day = True
-                self.set_discord_channel_status('🔴 CLOSED')
+                if not self.updating:
+                    self.updating = True
+                    threading.thread(target=self.set_discord_channel_status, args=['🔴 CLOSED']).start()
         # Handle weekends where 5 and 6 are Saturday and Sunday
         elif now.weekday() > 5:
-            self.status_label.config(text="CLOSED UNTIL MONDAY", style='Closed.Timer.TLabel')
+            self.status_label.config(text="CLOSED UNTIL\nMONDAY", style='Closed.Timer.TLabel')
             self.end_time_label.config(text=str(open_time))
             if not self.closed_for_day:
                 self.closed_for_day = True
-                self.set_discord_channel_status('🔴 CLOSED')
+                if not self.updating:
+                    self.updating = True
+                    threading.thread(target=self.set_discord_channel_status, args=['🔴 CLOSED']).start()
         elif close_time <= now_time or now_time <= open_time:
             # Not Saturday or Sunday
             if now.weekday() < 4:
-                self.status_label.config(text="CLOSED UNTIL TOMORROW", style='Closed.Timer.TLabel')
+                self.status_label.config(text="CLOSED UNTIL\nTOMORROW", style='Closed.Timer.TLabel')
             else:
-                self.status_label.config(text="CLOSED UNTIL MONDAY", style='Closed.Timer.TLabel')
+                self.status_label.config(text="CLOSED UNTIL\nMONDAY", style='Closed.Timer.TLabel')
             self.end_time_label.config(text=str(open_time))
             if not self.closed_for_day:
                 self.closed_for_day = True
-                self.set_discord_channel_status('🔴 CLOSED')
+                if not self.updating:
+                    self.updating = True
+                    threading.thread(target=self.set_discord_channel_status, args=['🔴 CLOSED']).start()
         elif self.is_free or self.end_time is None:
             self.status_label.config(text="FREE", style='Free.Timer.TLabel')
             self.end_time_label.config(text="")
