@@ -7,8 +7,8 @@ Semi Vibe-coded with Claude & Gemini (sorry)
 
 import tkinter as tk
 from tkinter import ttk
-from datetime import datetime, timedelta
-import time
+from datetime import datetime, timedelta, time
+from time import sleep
 import firebase_admin
 from firebase_admin import credentials, db
 import threading
@@ -225,7 +225,7 @@ class KioskTimerApp:
                 # delays are not a big deal besides race conditions
                 wait_time_secs = patch_resp.json()['retry_after'] + 1
                 # wait_time_secs = (wait_time_ms / 1000) + 1
-                time.sleep(wait_time_secs)
+                sleep(wait_time_secs)
                 patch_resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
         if patch_resp.status_code != 200:
             print("Updating channel failed")
