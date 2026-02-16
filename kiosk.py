@@ -168,7 +168,7 @@ class KioskTimerApp:
         self.is_free = False
         if not self.updating:
             self.updating = True
-            threading.thread(target=self.set_discord_channel_status, args=['🟧 BUSY']).start()
+            threading.Thread(target=self.set_discord_channel_status, args=['🟧 BUSY']).start()
     
     def set_free(self):
         """Set display to FREE"""
@@ -176,7 +176,7 @@ class KioskTimerApp:
         self.is_free = True
         if not self.updating:
             self.updating = True
-            threading.thread(target=self.set_discord_channel_status, args=['🟩 OPEN']).start()
+            threading.Thread(target=self.set_discord_channel_status, args=['🟩 OPEN']).start()
     
     def manual_free(self):
         """Manual button to set status to FREE"""
@@ -242,7 +242,7 @@ class KioskTimerApp:
                 self.closed_for_day = True
                 if not self.updating:
                     self.updating = True
-                    threading.thread(target=self.set_discord_channel_status, args=['🔴 CLOSED']).start()
+                    threading.Thread(target=self.set_discord_channel_status, args=['🔴 CLOSED']).start()
         # Handle weekends where 5 and 6 are Saturday and Sunday
         elif now.weekday() > 5:
             self.status_label.config(text="CLOSED UNTIL\nMONDAY", style='Closed.Timer.TLabel')
@@ -251,7 +251,7 @@ class KioskTimerApp:
                 self.closed_for_day = True
                 if not self.updating:
                     self.updating = True
-                    threading.thread(target=self.set_discord_channel_status, args=['🔴 CLOSED']).start()
+                    threading.Thread(target=self.set_discord_channel_status, args=['🔴 CLOSED']).start()
         elif close_time <= now_time or now_time <= open_time:
             # Not Saturday or Sunday
             if now.weekday() < 4:
@@ -263,7 +263,7 @@ class KioskTimerApp:
                 self.closed_for_day = True
                 if not self.updating:
                     self.updating = True
-                    threading.thread(target=self.set_discord_channel_status, args=['🔴 CLOSED']).start()
+                    threading.Thread(target=self.set_discord_channel_status, args=['🔴 CLOSED']).start()
         elif self.is_free or self.end_time is None:
             self.status_label.config(text="FREE", style='Free.Timer.TLabel')
             self.end_time_label.config(text="")
