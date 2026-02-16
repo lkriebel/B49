@@ -32,6 +32,7 @@ class KioskTimerApp:
         self.is_free = True
         self.closed_for_day = False
         self.manually_closed = False
+        self.updating = False
 
         # Style
         self.style = ttk.Style()
