@@ -7,7 +7,8 @@ Semi Vibe-coded with Claude & Gemini (sorry)
 
 import tkinter as tk
 from tkinter import ttk
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
+import time
 import firebase_admin
 from firebase_admin import credentials, db
 import threading
