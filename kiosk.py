@@ -205,14 +205,17 @@ class KioskTimerApp:
         if channel_resp.status_code != 200:
             print("GET on channel failed")
             print(channel_resp.json())
+            self.updating = False
             return
         try:
             channel_resp_json = channel_resp.json()
             # manual override for channel name
             if 'FOR' in channel_resp_json['name'].upper():
+                self.updating = False
                 return
         except requests.exceptions.JSONDecodeError:
             print("Channel lookup did not return valid JSON")
+            self.updating = False
             return
         patch_resp = requests.patch(url, headers=headers, json={"name": f'B49 Status: {status}'})
         if patch_resp.status_code == 429 and "retry_after" in patch_resp.json():
